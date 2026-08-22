@@ -9,12 +9,12 @@ from auth import (
     create_access_token,
 )
 from database import Base, SessionLocal, engine
-
+from routers.resume import router as resume_router
 app = FastAPI()
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
-
+app.include_router(resume_router)
 
 # Dependency to get DB session
 def get_db():

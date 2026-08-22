@@ -1,3 +1,7 @@
+# ==============================
+# Frontend (Vite/React)
+# ==============================
+
 # Logs
 logs
 *.log
@@ -22,3 +26,54 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ==============================
+# Backend (Python/FastAPI)
+# ==============================
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Uploaded resumes (local dev)
+backend/uploads/
+
+# OS files
+Thumbs.db

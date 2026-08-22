@@ -1,29 +1,42 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
-# Used when a user signs up
+# -------------------------
+# Signup
+# -------------------------
+
 class UserCreate(BaseModel):
     full_name: str
-    email: EmailStr
+    email: str
     password: str
 
 
-# Used when returning user data
 class UserResponse(BaseModel):
     id: int
     full_name: str
-    email: EmailStr
+    email: str
 
     class Config:
         from_attributes = True
 
-# Login Request
+
+# -------------------------
+# Login
+# -------------------------
+
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 
-# Login Response
 class Token(BaseModel):
     access_token: str
-    token_type: str        
+    token_type: str
+
+
+# -------------------------
+# Job Description
+# -------------------------
+
+class JobDescriptionRequest(BaseModel):
+    job_description: str
