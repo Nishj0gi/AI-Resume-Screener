@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 import shutil
@@ -7,6 +7,8 @@ import models
 import schemas
 
 from database import SessionLocal
+from auth import get_current_user
+
 from services.pdf_service import extract_text
 from services.resume_analyzer import (
     extract_skills,
@@ -23,7 +25,10 @@ router = APIRouter(
 UPLOAD_FOLDER = "uploads"
 
 
+# ---------------------------------------------------------
 # Database dependency
+# ---------------------------------------------------------
+
 def get_db():
     db = SessionLocal()
 
@@ -40,8 +45,29 @@ def get_db():
 @router.post("/upload")
 async def upload_resume(
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
+
+    # Check file type
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF files are allowed."
+        )
+
+    # Find logged-in user
+    user = (
+        db.query(models.User)
+        .filter(models.User.email == current_user)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
 
     # Create uploads folder if it doesn't exist
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -69,7 +95,7 @@ async def upload_resume(
     resume = models.Resume(
         filename=file.filename,
         filepath=file_path,
-        user_id=1
+        user_id=user.id
     )
 
     db.add(resume)
@@ -91,12 +117,28 @@ async def upload_resume(
 @router.post("/match")
 async def match_resume(
     request: schemas.JobDescriptionRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
 
+    # Find logged-in user
+    user = (
+        db.query(models.User)
+        .filter(models.User.email == current_user)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
     # Get the most recently uploaded resume
+    # belonging to the logged-in user
     resume = (
         db.query(models.Resume)
+        .filter(models.Resume.user_id == user.id)
         .order_by(models.Resume.id.desc())
         .first()
     )

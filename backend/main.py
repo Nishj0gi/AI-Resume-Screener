@@ -1,37 +1,92 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 import models
 import schemas
+
 from auth import (
     hash_password,
     verify_password,
     create_access_token,
 )
+
 from database import Base, SessionLocal, engine
 from routers.resume import router as resume_router
+
+
 app = FastAPI()
 
-# Create database tables
+
+# ---------------------------------------------------------
+# CORS Configuration
+# ---------------------------------------------------------
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ---------------------------------------------------------
+# Create Database Tables
+# ---------------------------------------------------------
+
 Base.metadata.create_all(bind=engine)
+
+
+# ---------------------------------------------------------
+# Include Resume Router
+# ---------------------------------------------------------
+
 app.include_router(resume_router)
 
-# Dependency to get DB session
+
+# ---------------------------------------------------------
+# Database Dependency
+# ---------------------------------------------------------
+
 def get_db():
     db = SessionLocal()
+
     try:
         yield db
     finally:
         db.close()
 
 
+# ---------------------------------------------------------
+# Root Endpoint
+# ---------------------------------------------------------
+
 @app.get("/")
 def root():
-    return {"message": "AI Resume Screener Backend is Running 🚀"}
+    return {
+        "message": "AI Resume Screener Backend is Running 🚀"
+    }
 
 
-@app.post("/signup", response_model=schemas.UserResponse)
-def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
+# ---------------------------------------------------------
+# Signup
+# ---------------------------------------------------------
+
+@app.post(
+    "/signup",
+    response_model=schemas.UserResponse
+)
+def signup(
+    user: schemas.UserCreate,
+    db: Session = Depends(get_db)
+):
 
     # Check if email already exists
     existing_user = (
@@ -59,8 +114,19 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
-@app.post("/login", response_model=schemas.Token)
-def login(user: schemas.LoginRequest, db: Session = Depends(get_db)):
+
+# ---------------------------------------------------------
+# Login
+# ---------------------------------------------------------
+
+@app.post(
+    "/login",
+    response_model=schemas.Token
+)
+def login(
+    user: schemas.LoginRequest,
+    db: Session = Depends(get_db)
+):
 
     # Find user by email
     existing_user = (
@@ -85,9 +151,11 @@ def login(user: schemas.LoginRequest, db: Session = Depends(get_db)):
             detail="Invalid email or password"
         )
 
-    # Create JWT Token
+    # Create JWT token
     access_token = create_access_token(
-        data={"sub": existing_user.email}
+        data={
+            "sub": existing_user.email
+        }
     )
 
     return {
