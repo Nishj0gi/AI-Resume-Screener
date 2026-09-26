@@ -1,9 +1,18 @@
 from datetime import datetime, timedelta
+import os
 
+from dotenv import load_dotenv
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+
+
+# ---------------------------------------------------------
+# Load Environment Variables
+# ---------------------------------------------------------
+
+load_dotenv()
 
 
 # ---------------------------------------------------------
@@ -20,7 +29,13 @@ pwd_context = CryptContext(
 # JWT Settings
 # ---------------------------------------------------------
 
-SECRET_KEY = "your_super_secret_key_change_this"
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not SECRET_KEY:
+    raise RuntimeError(
+        "SECRET_KEY is not set in the environment."
+    )
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
