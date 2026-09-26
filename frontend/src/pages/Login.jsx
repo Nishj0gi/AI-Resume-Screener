@@ -1,4 +1,13 @@
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Sparkles,
+  ShieldCheck,
+} from "lucide-react";
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -30,23 +39,21 @@ function Login() {
       const response = await axios.post(
         "http://127.0.0.1:8000/login",
         {
-          email: email,
-          password: password,
+          email,
+          password,
         }
       );
 
       const token = response.data.access_token;
 
-      // Store JWT token
       localStorage.setItem("access_token", token);
 
-      // Go to dashboard
       navigate("/dashboard");
     } catch (error) {
       if (error.response) {
         setError(
           error.response.data.detail ||
-          "Invalid email or password."
+            "Invalid email or password."
         );
       } else {
         setError(
@@ -59,143 +66,216 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen bg-[#05070D] text-white flex items-center justify-center relative overflow-hidden">
 
-      {/* Left Panel */}
+      {/* Background glow */}
+      <div className="absolute top-[-220px] left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-blue-600/10 blur-[140px] rounded-full pointer-events-none" />
 
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-blue-700 via-indigo-600 to-purple-700 text-white justify-center items-center">
+      <div className="absolute bottom-[-250px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-violet-600/10 blur-[150px] rounded-full pointer-events-none" />
 
-        <div className="max-w-md text-center">
+      {/* Subtle grid */}
+      <div
+        className="absolute inset-0 opacity-[0.025] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
 
-          <h1 className="text-6xl font-bold mb-6">
-            TalentLens AI
-          </h1>
+      {/* Login container */}
+      <div className="relative z-10 w-full max-w-[430px] px-6">
 
-          <p className="text-xl leading-relaxed">
-            Intelligent Resume Screening & Candidate Ranking Platform
-          </p>
+        {/* Brand */}
+        <div className="flex justify-center mb-10">
+
+          <Link
+            to="/"
+            className="flex items-center gap-3 group"
+          >
+
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+
+              <Sparkles size={18} />
+
+            </div>
+
+            <div className="text-left">
+
+              <div className="text-[17px] font-semibold tracking-tight">
+                TalentLens
+              </div>
+
+              <div className="text-[9px] tracking-[0.18em] text-slate-500 uppercase">
+                AI Career Intelligence
+              </div>
+
+            </div>
+
+          </Link>
 
         </div>
 
-      </div>
+        {/* Card */}
+        <div className="bg-[#090C13]/95 border border-white/[0.08] rounded-2xl px-8 py-9 shadow-2xl shadow-black/40 backdrop-blur-xl">
 
+          {/* Heading */}
+          <div className="mb-8">
 
-      {/* Right Panel */}
+            <p className="text-[11px] tracking-[0.18em] text-blue-400 font-medium uppercase mb-3">
+              Welcome back
+            </p>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-slate-100">
+            <h1 className="text-[30px] font-semibold tracking-tight">
+              Sign in to TalentLens
+            </h1>
 
-        <div className="bg-white shadow-2xl rounded-3xl p-10 w-[430px]">
+            <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+              Continue analyzing your career profile
+              and discovering your next opportunity.
+            </p>
 
-          <h2 className="text-4xl font-bold text-center">
-            Welcome Back
-          </h2>
+          </div>
 
-          <p className="text-center text-gray-500 mt-2 mb-8">
-            Login to continue
-          </p>
-
-
-          {/* Error Message */}
-
+          {/* Error */}
           {error && (
-            <div className="bg-red-100 text-red-600 border border-red-200 rounded-xl p-3 mb-6 text-sm">
+            <div className="mb-5 px-4 py-3 rounded-lg border border-red-500/20 bg-red-500/[0.06] text-red-400 text-sm">
               {error}
             </div>
           )}
 
-
-          <form onSubmit={handleLogin}>
+          {/* Form */}
+          <form
+            onSubmit={handleLogin}
+            className="space-y-5"
+          >
 
             {/* Email */}
+            <div>
 
-            <label className="font-semibold">
-              Email
-            </label>
+              <label className="block text-xs font-medium text-slate-400 mb-2">
+                Email address
+              </label>
 
-            <div className="flex items-center border rounded-xl mt-2 mb-6 px-3">
+              <div className="relative">
 
-              <Mail
-                size={18}
-                className="text-gray-500"
-              />
+                <Mail
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600"
+                />
 
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-4 outline-none"
-              />
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) =>
+                    setEmail(e.target.value)
+                  }
+                  className="w-full h-12 bg-[#0D1119] border border-white/[0.08] rounded-lg pl-10 pr-4 text-sm text-white placeholder:text-slate-700 outline-none transition focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/20"
+                />
+
+              </div>
 
             </div>
-
 
             {/* Password */}
+            <div>
 
-            <label className="font-semibold">
-              Password
-            </label>
+              <label className="block text-xs font-medium text-slate-400 mb-2">
+                Password
+              </label>
 
-            <div className="flex items-center border rounded-xl mt-2 mb-8 px-3">
+              <div className="relative">
 
-              <Lock
-                size={18}
-                className="text-gray-500"
-              />
+                <Lock
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600"
+                />
 
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-4 outline-none"
-              />
+                <input
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
+                  className="w-full h-12 bg-[#0D1119] border border-white/[0.08] rounded-lg pl-10 pr-11 text-sm text-white placeholder:text-slate-700 outline-none transition focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/20"
+                />
 
-              <button
-                type="button"
-                onClick={() =>
-                  setShowPassword(!showPassword)
-                }
-              >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
-              </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowPassword(!showPassword)
+                  }
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-300 transition"
+                >
+                  {showPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
+                </button>
+
+              </div>
 
             </div>
 
-
-            {/* Login Button */}
-
+            {/* Sign in */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl p-4 font-semibold transition"
+              className="w-full h-12 mt-2 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400 disabled:opacity-60 text-sm font-semibold transition shadow-lg shadow-blue-500/10"
             >
-              {loading ? "Logging in..." : "Login"}
+
+              {loading
+                ? "Signing in..."
+                : "Sign in"}
+
+              {!loading && (
+                <ArrowRight size={17} />
+              )}
+
             </button>
 
           </form>
 
-
           {/* Signup */}
+          <div className="mt-7 text-center">
 
-          <p className="text-center mt-6">
+            <p className="text-sm text-slate-600">
 
-            Don't have an account?{" "}
+              Don't have an account?{" "}
 
-            <Link
-              to="/signup"
-              className="text-blue-600 font-semibold"
-            >
-              Sign Up
-            </Link>
+              <Link
+                to="/signup"
+                className="text-slate-300 hover:text-white transition font-medium"
+              >
+                Sign up
+              </Link>
 
-          </p>
+            </p>
+
+          </div>
+
+          {/* Security */}
+          <div className="mt-7 pt-5 border-t border-white/[0.06] flex items-center justify-center gap-2 text-[11px] text-slate-600">
+
+            <ShieldCheck size={13} />
+
+            Secure authentication
+
+          </div>
 
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-[10px] text-slate-700 mt-6 tracking-wide">
+          TALENTLENS AI · CAREER INTELLIGENCE PLATFORM
+        </p>
 
       </div>
 

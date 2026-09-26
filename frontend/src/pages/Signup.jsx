@@ -1,132 +1,351 @@
-import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Sparkles,
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function Signup() {
-
   const [showPassword, setShowPassword] = useState(false);
 
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const navigate = useNavigate();
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+
+    setError("");
+    setSuccess("");
+
+    if (!fullName || !email || !password) {
+      setError("Please fill in all the fields.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must contain at least 8 characters.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await axios.post(
+        "http://127.0.0.1:8000/signup",
+        {
+          full_name: fullName,
+          email,
+          password,
+        }
+      );
+
+      setSuccess(
+        "Account created successfully. Redirecting to login..."
+      );
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1200);
+
+    } catch (error) {
+      if (error.response) {
+        setError(
+          error.response.data.detail ||
+            "Unable to create your account."
+        );
+      } else {
+        setError(
+          "Unable to connect to the server. Please try again."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
+    <div className="min-h-screen bg-[#05070D] text-white flex items-center justify-center relative overflow-hidden">
 
-    <div className="min-h-screen flex">
+      {/* Background glow */}
+      <div className="absolute top-[-220px] left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-blue-600/[0.07] blur-[150px] rounded-full pointer-events-none" />
 
-      {/* Left */}
+      <div className="absolute bottom-[-250px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-violet-600/[0.07] blur-[150px] rounded-full pointer-events-none" />
 
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-purple-700 via-indigo-600 to-blue-700 text-white justify-center items-center">
+      {/* Subtle grid */}
+      <div
+        className="absolute inset-0 opacity-[0.025] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
 
-        <div className="text-center max-w-md">
+      {/* Main */}
+      <div className="relative z-10 w-full max-w-[430px] px-6 py-10">
 
-          <h1 className="text-6xl font-bold mb-6">
-            Join TalentLens AI
-          </h1>
+        {/* Brand */}
+        <div className="flex justify-center mb-9">
 
-          <p className="text-xl leading-relaxed">
-            Create your account and start screening resumes using AI.
-          </p>
+          <Link
+            to="/"
+            className="flex items-center gap-3"
+          >
+
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <Sparkles size={18} />
+            </div>
+
+            <div className="text-left">
+
+              <div className="text-[17px] font-semibold tracking-tight">
+                TalentLens
+              </div>
+
+              <div className="text-[9px] tracking-[0.18em] text-slate-500 uppercase">
+                AI Career Intelligence
+              </div>
+
+            </div>
+
+          </Link>
 
         </div>
 
-      </div>
+        {/* Card */}
+        <div className="bg-[#090C13]/95 border border-white/[0.08] rounded-2xl px-8 py-9 shadow-2xl shadow-black/40 backdrop-blur-xl">
 
-      {/* Right */}
+          {/* Heading */}
+          <div className="mb-7">
 
-      <div className="w-full lg:w-1/2 bg-slate-100 flex justify-center items-center">
+            <p className="text-[11px] tracking-[0.18em] text-violet-400 font-medium uppercase mb-3">
+              Get started
+            </p>
 
-        <div className="bg-white rounded-3xl shadow-2xl p-10 w-[450px]">
+            <h1 className="text-[30px] font-semibold tracking-tight">
+              Create your account
+            </h1>
 
-          <h2 className="text-4xl font-bold text-center">
-            Create Account
-          </h2>
-
-          <p className="text-center text-gray-500 mt-2 mb-8">
-            Signup to continue
-          </p>
-
-          {/* Name */}
-
-          <label className="font-semibold">
-            Full Name
-          </label>
-
-          <div className="flex items-center border rounded-xl mt-2 mb-5 px-3">
-
-            <User size={18} className="text-gray-500"/>
-
-            <input
-              type="text"
-              placeholder="Enter your name"
-              className="w-full p-4 outline-none"
-            />
+            <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+              Build your career profile and understand
+              where your resume fits.
+            </p>
 
           </div>
 
-          {/* Email */}
+          {/* Error */}
+          {error && (
+            <div className="mb-5 flex items-start gap-3 px-4 py-3 rounded-lg border border-red-500/20 bg-red-500/[0.05] text-red-400 text-sm">
 
-          <label className="font-semibold">
-            Email
-          </label>
+              <AlertCircle
+                size={17}
+                className="mt-0.5 shrink-0"
+              />
 
-          <div className="flex items-center border rounded-xl mt-2 mb-5 px-3">
+              <span>{error}</span>
 
-            <Mail size={18} className="text-gray-500"/>
+            </div>
+          )}
 
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full p-4 outline-none"
-            />
+          {/* Success */}
+          {success && (
+            <div className="mb-5 flex items-start gap-3 px-4 py-3 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.05] text-emerald-400 text-sm">
 
-          </div>
+              <CheckCircle2
+                size={17}
+                className="mt-0.5 shrink-0"
+              />
 
-          {/* Password */}
+              <span>{success}</span>
 
-          <label className="font-semibold">
-            Password
-          </label>
+            </div>
+          )}
 
-          <div className="flex items-center border rounded-xl mt-2 mb-8 px-3">
+          {/* Form */}
+          <form
+            onSubmit={handleSignup}
+            className="space-y-5"
+          >
 
-            <Lock size={18} className="text-gray-500"/>
+            {/* Full name */}
+            <div>
 
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Create password"
-              className="w-full p-4 outline-none"
-            />
+              <label className="block text-xs font-medium text-slate-400 mb-2">
+                Full name
+              </label>
 
+              <div className="relative">
+
+                <User
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600"
+                />
+
+                <input
+                  type="text"
+                  placeholder="Your full name"
+                  value={fullName}
+                  onChange={(e) =>
+                    setFullName(e.target.value)
+                  }
+                  className="w-full h-12 bg-[#0D1119] border border-white/[0.08] rounded-lg pl-10 pr-4 text-sm text-white placeholder:text-slate-700 outline-none transition focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/20"
+                />
+
+              </div>
+
+            </div>
+
+            {/* Email */}
+            <div>
+
+              <label className="block text-xs font-medium text-slate-400 mb-2">
+                Email address
+              </label>
+
+              <div className="relative">
+
+                <Mail
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600"
+                />
+
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) =>
+                    setEmail(e.target.value)
+                  }
+                  className="w-full h-12 bg-[#0D1119] border border-white/[0.08] rounded-lg pl-10 pr-4 text-sm text-white placeholder:text-slate-700 outline-none transition focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/20"
+                />
+
+              </div>
+
+            </div>
+
+            {/* Password */}
+            <div>
+
+              <label className="block text-xs font-medium text-slate-400 mb-2">
+                Password
+              </label>
+
+              <div className="relative">
+
+                <Lock
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600"
+                />
+
+                <input
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
+                  className="w-full h-12 bg-[#0D1119] border border-white/[0.08] rounded-lg pl-10 pr-11 text-sm text-white placeholder:text-slate-700 outline-none transition focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/20"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowPassword(!showPassword)
+                  }
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-300 transition"
+                >
+                  {showPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
+                </button>
+
+              </div>
+
+              <p className="text-[10px] text-slate-700 mt-2">
+                Use at least 8 characters.
+              </p>
+
+            </div>
+
+            {/* Create account */}
             <button
-              onClick={() => setShowPassword(!showPassword)}
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 mt-2 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400 disabled:opacity-60 text-sm font-semibold transition shadow-lg shadow-blue-500/10"
             >
-              {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+
+              {loading
+                ? "Creating account..."
+                : "Create account"}
+
+              {!loading && (
+                <ArrowRight size={17} />
+              )}
+
             </button>
 
+          </form>
+
+          {/* Login */}
+          <div className="mt-7 text-center">
+
+            <p className="text-sm text-slate-600">
+
+              Already have an account?{" "}
+
+              <Link
+                to="/"
+                className="text-slate-300 hover:text-white transition font-medium"
+              >
+                Sign in
+              </Link>
+
+            </p>
+
           </div>
 
-          <button className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl p-4 font-semibold transition">
+          {/* Security */}
+          <div className="mt-7 pt-5 border-t border-white/[0.06] flex items-center justify-center gap-2 text-[11px] text-slate-600">
 
-            Create Account
+            <ShieldCheck size={13} />
 
-          </button>
+            Your account is securely protected
 
-          <p className="text-center mt-6">
-
-            Already have an account?{" "}
-
-            <Link
-              to="/"
-              className="text-blue-600 font-semibold"
-            >
-              Login
-            </Link>
-
-          </p>
+          </div>
 
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-[10px] text-slate-700 mt-6 tracking-wide">
+          TALENTLENS AI · CAREER INTELLIGENCE PLATFORM
+        </p>
 
       </div>
 
     </div>
-
   );
 }
 
