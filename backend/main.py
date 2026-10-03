@@ -26,12 +26,15 @@ app = FastAPI()
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://ai-resume-screener-ten-rho.vercel.app",
 ]
 
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    # Also allow Vercel preview deployment URLs for this project
+    allow_origin_regex=r"https://ai-resume-screener-.*-nish-6037\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
