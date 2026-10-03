@@ -15,6 +15,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 function Signup() {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -48,7 +51,7 @@ function Signup() {
       setLoading(true);
 
       await axios.post(
-        "http://127.0.0.1:8000/signup",
+        `${API_URL}/signup`,
         {
           full_name: fullName,
           email,

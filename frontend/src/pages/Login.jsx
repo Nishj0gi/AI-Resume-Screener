@@ -12,6 +12,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -37,7 +40,7 @@ function Login() {
       setLoading(true);
 
       const response = await axios.post(
-        "http://127.0.0.1:8000/login",
+        `${API_URL}/login`,
         {
           email,
           password,
