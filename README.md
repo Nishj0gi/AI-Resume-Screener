@@ -206,20 +206,6 @@ VITE_API_URL=http://127.0.0.1:8000
 
 ---
 
-## 📸 Screenshots
-
-> Add your screenshots to a `screenshots/` folder and update the paths below.
-
-| Login | Dashboard |
-|-------|-----------|
-| ![Login](screenshots/login.png) | ![Dashboard](screenshots/dashboard.png) |
-
-| Upload Resume | Job Match Results |
-|---------------|-------------------|
-| ![Upload](screenshots/upload.png) | ![Results](screenshots/results.png) |
-
----
-
 ## 🎯 Future Enhancements
 
 - [ ] Migrate from SQLite to **PostgreSQL** for persistent production data
