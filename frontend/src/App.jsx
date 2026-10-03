@@ -5,6 +5,8 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import UploadResume from "./pages/UploadResume";
 import Results from "./pages/Results";
+import Insights from "./pages/Insights";
+import Settings from "./pages/Settings";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -12,19 +14,22 @@ function App() {
   return (
     <Routes>
 
-      {/* Login */}
-      <Route
-        path="/"
-        element={<Login />}
-      />
+      {/* ================================
+          PUBLIC ROUTES
+      ================================= */}
 
-      {/* Signup */}
+      <Route path="/" element={<Login />} />
+
       <Route
         path="/signup"
         element={<Signup />}
       />
 
-      {/* Dashboard */}
+
+      {/* ================================
+          PROTECTED ROUTES
+      ================================= */}
+
       <Route
         path="/dashboard"
         element={
@@ -34,7 +39,6 @@ function App() {
         }
       />
 
-      {/* Upload Resume */}
       <Route
         path="/upload-resume"
         element={
@@ -44,7 +48,6 @@ function App() {
         }
       />
 
-      {/* Job Matching / Results */}
       <Route
         path="/results"
         element={
@@ -52,6 +55,34 @@ function App() {
             <Results />
           </ProtectedRoute>
         }
+      />
+
+      <Route
+        path="/insights"
+        element={
+          <ProtectedRoute>
+            <Insights />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
+
+
+      {/* ================================
+          FALLBACK
+      ================================= */}
+
+      <Route
+        path="*"
+        element={<Login />}
       />
 
     </Routes>

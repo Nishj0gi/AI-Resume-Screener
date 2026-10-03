@@ -40,3 +40,15 @@ class Token(BaseModel):
 
 class JobDescriptionRequest(BaseModel):
     job_description: str
+
+
+# -------------------------
+# Dashboard
+# -------------------------
+
+class DashboardResponse(BaseModel):
+    resume_score: float | None = None
+    latest_job_match: float | None = None
+    detected_skills: int = 0
+    has_resume: bool = False
+    has_job_match: bool = False

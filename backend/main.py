@@ -9,6 +9,7 @@ from auth import (
     hash_password,
     verify_password,
     create_access_token,
+    get_current_user,
 )
 
 from database import Base, SessionLocal, engine
@@ -71,7 +72,7 @@ def get_db():
 @app.get("/")
 def root():
     return {
-        "message": "AI Resume Screener Backend is Running 🚀"
+        "message": "AI Resume Screener Backend is Running"
     }
 
 
@@ -162,3 +163,32 @@ def login(
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+
+# ---------------------------------------------------------
+# Current Logged-in User
+# ---------------------------------------------------------
+
+@app.get(
+    "/me",
+    response_model=schemas.UserResponse
+)
+def get_me(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    # Find the authenticated user
+    user = (
+        db.query(models.User)
+        .filter(models.User.email == current_user)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return user

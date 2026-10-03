@@ -27,19 +27,26 @@ function UploadResume() {
 
   const navigate = useNavigate();
 
+  const API_URL =
+    import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
   const handleFile = (selectedFile) => {
     setError("");
     setSuccess(false);
     setResumeData(null);
 
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      return;
+    }
 
     if (selectedFile.type !== "application/pdf") {
+      setFile(null);
       setError("Please upload your resume in PDF format.");
       return;
     }
 
     if (selectedFile.size > 5 * 1024 * 1024) {
+      setFile(null);
       setError("File size must be less than 5 MB.");
       return;
     }
@@ -47,11 +54,11 @@ function UploadResume() {
     setFile(selectedFile);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
+  const handleDrop = (event) => {
+    event.preventDefault();
     setDragActive(false);
 
-    const droppedFile = e.dataTransfer.files?.[0];
+    const droppedFile = event.dataTransfer.files?.[0];
 
     handleFile(droppedFile);
   };
@@ -66,43 +73,50 @@ function UploadResume() {
     setSuccess(false);
     setResumeData(null);
 
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      navigate("/");
+      return;
+    }
+
     try {
       setUploading(true);
 
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
       const formData = new FormData();
-
       formData.append("file", file);
 
       const response = await axios.post(
-        "http://127.0.0.1:8000/resume/upload",
+        `${API_URL}/resume/upload`,
         formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
           },
         }
       );
 
       setResumeData(response.data);
       setSuccess(true);
-
     } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("access_token");
+        navigate("/");
+        return;
+      }
+
       if (error.response) {
         setError(
-          error.response.data.detail ||
+          error.response.data?.detail ||
             "Unable to upload your resume."
+        );
+      } else if (error.request) {
+        setError(
+          "Unable to connect to the server. Please make sure the backend is running."
         );
       } else {
         setError(
-          "Unable to connect to the server. Please try again."
+          "Something went wrong while uploading your resume."
         );
       }
     } finally {
@@ -145,7 +159,6 @@ function UploadResume() {
             to="/dashboard"
             className="flex items-center gap-3"
           >
-
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
               <Sparkles size={18} />
             </div>
@@ -159,7 +172,6 @@ function UploadResume() {
                 AI Career Intelligence
               </div>
             </div>
-
           </Link>
 
           {/* Back */}
@@ -190,8 +202,8 @@ function UploadResume() {
           </h1>
 
           <p className="text-sm text-slate-500 mt-3 max-w-md mx-auto leading-relaxed">
-            Upload your latest resume and let TalentLens
-            analyze your skills, experience, and career profile.
+            Upload your latest resume and let TalentLens analyze
+            your skills, experience, and career profile.
           </p>
 
         </div>
@@ -253,7 +265,7 @@ function UploadResume() {
                 <Check size={17} />
 
                 <span>
-                  Resume uploaded and analyzed successfully.
+                  Resume uploaded and processed successfully.
                 </span>
 
               </div>
@@ -262,16 +274,16 @@ function UploadResume() {
             {/* Drop zone */}
             {!file ? (
               <label
-                onDragEnter={(e) => {
-                  e.preventDefault();
+                onDragEnter={(event) => {
+                  event.preventDefault();
                   setDragActive(true);
                 }}
-                onDragOver={(e) => {
-                  e.preventDefault();
+                onDragOver={(event) => {
+                  event.preventDefault();
                   setDragActive(true);
                 }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
+                onDragLeave={(event) => {
+                  event.preventDefault();
                   setDragActive(false);
                 }}
                 onDrop={handleDrop}
@@ -300,8 +312,8 @@ function UploadResume() {
                   type="file"
                   accept=".pdf,application/pdf"
                   className="hidden"
-                  onChange={(e) =>
-                    handleFile(e.target.files?.[0])
+                  onChange={(event) =>
+                    handleFile(event.target.files?.[0])
                   }
                 />
 
@@ -364,6 +376,8 @@ function UploadResume() {
                       type="button"
                       onClick={removeFile}
                       className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-white hover:bg-white/[0.05] transition"
+                      aria-label="Remove selected resume"
+                      title="Remove resume"
                     >
                       <X size={16} />
                     </button>
@@ -371,14 +385,14 @@ function UploadResume() {
 
                 </div>
 
-                {/* File status */}
+                {/* Upload progress */}
                 {uploading && (
                   <div className="mt-5 pt-4 border-t border-white/[0.06]">
 
                     <div className="flex items-center justify-between text-xs mb-2">
 
                       <span className="text-slate-500">
-                        Analyzing resume...
+                        Processing resume...
                       </span>
 
                       <Loader2
@@ -397,6 +411,7 @@ function UploadResume() {
                   </div>
                 )}
 
+                {/* Processed status */}
                 {success && (
                   <div className="mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-2 text-xs text-emerald-400">
 
@@ -416,7 +431,7 @@ function UploadResume() {
                 type="button"
                 onClick={handleUpload}
                 disabled={uploading}
-                className="w-full h-12 mt-5 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400 disabled:opacity-60 text-sm font-semibold transition shadow-lg shadow-blue-500/10"
+                className="w-full h-12 mt-5 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400 disabled:opacity-60 disabled:cursor-not-allowed text-sm font-semibold transition shadow-lg shadow-blue-500/10"
               >
 
                 {uploading ? (
@@ -426,7 +441,7 @@ function UploadResume() {
                       className="animate-spin"
                     />
 
-                    Analyzing resume...
+                    Processing resume...
                   </>
                 ) : (
                   <>
@@ -471,7 +486,7 @@ function UploadResume() {
                         {resumeData.detected_skills.map(
                           (skill, index) => (
                             <span
-                              key={index}
+                              key={`${skill}-${index}`}
                               className="px-3 py-1.5 rounded-md bg-blue-500/[0.07] border border-blue-500/10 text-xs text-blue-300"
                             >
                               {skill}
@@ -490,11 +505,8 @@ function UploadResume() {
                   onClick={() => navigate("/results")}
                   className="w-full h-12 mt-5 flex items-center justify-center gap-2 rounded-lg border border-white/[0.10] bg-white/[0.02] hover:bg-white/[0.05] text-sm font-medium transition"
                 >
-
                   Continue to job matching
-
                   <ArrowRight size={17} />
-
                 </button>
 
               </div>

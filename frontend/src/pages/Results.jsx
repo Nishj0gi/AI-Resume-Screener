@@ -11,19 +11,23 @@ import {
   AlertCircle,
   Lightbulb,
   ShieldCheck,
+  Layers3,
 } from "lucide-react";
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function Results() {
   const [jobDescription, setJobDescription] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const [result, setResult] = useState(null);
+
+  const navigate = useNavigate();
+
+  const API_URL =
+    import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
   const handleMatch = async () => {
     setError("");
@@ -33,21 +37,28 @@ function Results() {
       return;
     }
 
+    if (jobDescription.trim().length < 30) {
+      setError(
+        "Please provide a more complete job description for a meaningful analysis."
+      );
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      navigate("/");
+      return;
+    }
+
     try {
       setLoading(true);
       setResult(null);
 
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        window.location.href = "/";
-        return;
-      }
-
       const response = await axios.post(
-        "http://127.0.0.1:8000/resume/match",
+        `${API_URL}/resume/match`,
         {
-          job_description: jobDescription,
+          job_description: jobDescription.trim(),
         },
         {
           headers: {
@@ -58,20 +69,43 @@ function Results() {
 
       setResult(response.data);
     } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("access_token");
+        navigate("/");
+        return;
+      }
+
+      if (error.response?.status === 404) {
+        setError(
+          "No uploaded resume was found. Please upload your resume first."
+        );
+        return;
+      }
+
       if (error.response) {
         setError(
-          error.response.data.detail ||
+          error.response.data?.detail ||
             "Unable to analyze this job description."
+        );
+      } else if (error.request) {
+        setError(
+          "Unable to connect to the server. Please make sure the backend is running."
         );
       } else {
         setError(
-          "Unable to connect to the server. Please try again."
+          "Something went wrong while analyzing the job description."
         );
       }
     } finally {
       setLoading(false);
     }
   };
+
+  const sectionsFound = Array.isArray(result?.sections_found)
+    ? result.sections_found
+    : [];
+
+  const sectionsTotal = result?.sections_total ?? 7;
 
   return (
     <div className="min-h-screen bg-[#05070D] text-white relative overflow-hidden">
@@ -100,7 +134,6 @@ function Results() {
             to="/dashboard"
             className="flex items-center gap-3"
           >
-
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
               <Sparkles size={18} />
             </div>
@@ -114,7 +147,6 @@ function Results() {
                 AI Career Intelligence
               </div>
             </div>
-
           </Link>
 
           <Link
@@ -160,16 +192,13 @@ function Results() {
             <div className="flex items-center gap-3">
 
               <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/10 flex items-center justify-center">
-
                 <BriefcaseBusiness
                   size={16}
                   className="text-violet-400"
                 />
-
               </div>
 
               <div>
-
                 <p className="text-sm font-medium">
                   Job description
                 </p>
@@ -177,12 +206,17 @@ function Results() {
                 <p className="text-[11px] text-slate-600">
                   Paste the complete role description
                 </p>
-
               </div>
 
             </div>
 
-            <span className="text-[10px] text-slate-600">
+            <span
+              className={`text-[10px] ${
+                jobDescription.length >= 4800
+                  ? "text-amber-400"
+                  : "text-slate-600"
+              }`}
+            >
               {jobDescription.length}/5000
             </span>
 
@@ -207,11 +241,12 @@ function Results() {
             {/* Textarea */}
             <textarea
               value={jobDescription}
-              onChange={(e) =>
+              onChange={(event) => {
                 setJobDescription(
-                  e.target.value.slice(0, 5000)
-                )
-              }
+                  event.target.value.slice(0, 5000)
+                );
+                setError("");
+              }}
               placeholder={`Paste the job description here...
 
 Example:
@@ -220,7 +255,8 @@ Example:
 • Qualifications
 • Experience
 • Technical requirements`}
-              className="w-full min-h-[300px] resize-y bg-[#0D1119] border border-white/[0.08] rounded-xl px-5 py-4 text-sm text-slate-200 placeholder:text-slate-700 outline-none transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/10 leading-relaxed"
+              disabled={loading}
+              className="w-full min-h-[300px] resize-y bg-[#0D1119] border border-white/[0.08] rounded-xl px-5 py-4 text-sm text-slate-200 placeholder:text-slate-700 outline-none transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/10 leading-relaxed disabled:opacity-60"
             />
 
             {/* Resume status */}
@@ -238,7 +274,6 @@ Example:
                 </div>
 
                 <div>
-
                   <p className="text-xs font-medium text-slate-300">
                     Resume ready
                   </p>
@@ -246,7 +281,6 @@ Example:
                   <p className="text-[10px] text-slate-600 mt-0.5">
                     Your latest uploaded resume will be used
                   </p>
-
                 </div>
 
                 <Check
@@ -271,7 +305,7 @@ Example:
               type="button"
               onClick={handleMatch}
               disabled={loading}
-              className="w-full h-12 mt-6 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400 disabled:opacity-60 text-sm font-semibold transition shadow-lg shadow-blue-500/10"
+              className="w-full h-12 mt-6 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400 disabled:opacity-60 disabled:cursor-not-allowed text-sm font-semibold transition shadow-lg shadow-blue-500/10"
             >
 
               {loading ? (
@@ -286,7 +320,6 @@ Example:
               ) : (
                 <>
                   Analyze compatibility
-
                   <ArrowRight size={17} />
                 </>
               )}
@@ -374,11 +407,68 @@ Example:
               />
 
               <MetricCard
-                icon={<FileText size={16} />}
+                icon={<Layers3 size={16} />}
                 label="Sections found"
-                value={`${result.sections_found ?? 0}/7`}
+                value={`${sectionsFound.length}/${sectionsTotal}`}
                 color="cyan"
               />
+
+            </div>
+
+            {/* Detected resume sections */}
+            <div className="bg-[#090C13]/95 border border-white/[0.08] rounded-xl p-6">
+
+              <div className="flex items-center justify-between mb-4">
+
+                <div className="flex items-center gap-3">
+
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/[0.07] border border-cyan-500/10 flex items-center justify-center">
+
+                    <Layers3
+                      size={16}
+                      className="text-cyan-400"
+                    />
+
+                  </div>
+
+                  <div>
+
+                    <p className="text-sm font-medium">
+                      Resume sections detected
+                    </p>
+
+                    <p className="text-[11px] text-slate-600">
+                      Sections identified in your uploaded resume
+                    </p>
+
+                  </div>
+
+                </div>
+
+                <span className="text-xs text-cyan-400">
+                  {sectionsFound.length}/{sectionsTotal}
+                </span>
+
+              </div>
+
+              {sectionsFound.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+
+                  {sectionsFound.map((section, index) => (
+                    <span
+                      key={`${section}-${index}`}
+                      className="px-3 py-1.5 rounded-md bg-cyan-500/[0.06] border border-cyan-500/10 text-xs text-cyan-400 capitalize"
+                    >
+                      {section}
+                    </span>
+                  ))}
+
+                </div>
+              ) : (
+                <p className="text-xs text-slate-600">
+                  No standard resume sections were detected.
+                </p>
+              )}
 
             </div>
 
@@ -400,7 +490,7 @@ Example:
             </div>
 
             {/* Recommendations */}
-            {result.recommendations &&
+            {Array.isArray(result.recommendations) &&
               result.recommendations.length > 0 && (
                 <div className="bg-[#090C13]/95 border border-white/[0.08] rounded-2xl p-7">
 
@@ -434,7 +524,7 @@ Example:
                     {result.recommendations.map(
                       (recommendation, index) => (
                         <div
-                          key={index}
+                          key={`${recommendation}-${index}`}
                           className="flex gap-3 text-sm text-slate-400 leading-relaxed"
                         >
 
@@ -487,7 +577,11 @@ Example:
   );
 }
 
-/* Metric card */
+
+/* ---------------------------------------------------------
+   Metric Card
+--------------------------------------------------------- */
+
 function MetricCard({
   icon,
   label,
@@ -495,10 +589,14 @@ function MetricCard({
   color,
 }) {
   const colorClasses = {
-    blue: "text-blue-400 bg-blue-500/[0.07] border-blue-500/10",
+    blue:
+      "text-blue-400 bg-blue-500/[0.07] border-blue-500/10",
+
     violet:
       "text-violet-400 bg-violet-500/[0.07] border-violet-500/10",
-    cyan: "text-cyan-400 bg-cyan-500/[0.07] border-cyan-500/10",
+
+    cyan:
+      "text-cyan-400 bg-cyan-500/[0.07] border-cyan-500/10",
   };
 
   return (
@@ -526,7 +624,11 @@ function MetricCard({
   );
 }
 
-/* Skill panel */
+
+/* ---------------------------------------------------------
+   Skill Panel
+--------------------------------------------------------- */
+
 function SkillPanel({
   title,
   skills,
@@ -554,7 +656,7 @@ function SkillPanel({
 
           {skills.map((skill, index) => (
             <span
-              key={index}
+              key={`${skill}-${index}`}
               className={
                 isMatched
                   ? "px-2.5 py-1.5 rounded-md bg-emerald-500/[0.06] border border-emerald-500/10 text-xs text-emerald-400"
@@ -575,5 +677,6 @@ function SkillPanel({
     </div>
   );
 }
+
 
 export default Results;
